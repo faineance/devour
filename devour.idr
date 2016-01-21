@@ -9,13 +9,17 @@ record Parser a where
 Monad Parser where
     p >>= f  = Parse (\cs => concat [parse (f a) cs' | (a,cs') <- parse p cs])
 
--- MonadZero Parser where
---     zero = Parse (\cs -> [])
+MonadZero Parser where
+    zero = Parse (\cs -> [])
+
 Functor Parser where
+    -- return = pure for all monads (since they're all already applicatives)
     map f p = Parse (\cs => [(f v, cs') | (v,cs') <- parse p cs])
+
 
 Applicative Parser where
     pure v = Parse (\cs => [(v, cs)])
+    -- a <*> b 
 
 
 
