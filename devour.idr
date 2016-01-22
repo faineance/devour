@@ -5,13 +5,6 @@ record Parser a where
     parse : String -> List (a, String)
 
 
-
-Monad Parser where
-    p >>= f  = Parse (\cs => concat [parse (f a) cs' | (a,cs') <- parse p cs])
-
-MonadZero Parser where
-    zero = Parse (\cs -> [])
-
 Functor Parser where
     -- return = pure for all monads (since they're all already applicatives)
     map f p = Parse (\cs => [(f v, cs') | (v,cs') <- parse p cs])
@@ -19,7 +12,11 @@ Functor Parser where
 
 Applicative Parser where
     pure v = Parse (\cs => [(v, cs)])
-    -- a <*> b 
+    (Parse a) <*> (Parse b) = Parse (\cs => [(f a, s') | (f, s) <- a cs, (a, s') <- b s])
+
+Monad Parser where
+    p >>= f = Parse (\cs => concat [parse (f a) cs' | (a,cs') <- parse p cs])
+
 
 
 
