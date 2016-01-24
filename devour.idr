@@ -12,13 +12,17 @@ Functor Parser where
 
 Applicative Parser where
     pure v = Parse (\cs => [(v, cs)])
-    (Parse a) <*> (Parse b) = Parse (\cs => [(f a, s') | (f, s) <- a cs, (a, s') <- b s])
+    (Parse p) <*> (Parse p') = Parse (\cs => [(f a, s') | (f, s) <- p cs, (a, s') <- p' s])
+
 
 Monad Parser where
     p >>= f = Parse (\cs => concat [parse (f a) cs' | (a,cs') <- parse p cs])
 
-
-
+Alternative Parser where
+    empty = Parse (\cs => [])
+    p <|> q = Parse (\cs => case parse p cs of
+                            [] => parse q cs
+                            r => r)
 
 char : Parser Char
 char = Parse (\cs => case (unpack cs) of
