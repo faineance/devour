@@ -18,6 +18,8 @@ Applicative Parser where
 Monad Parser where
     p >>= f = Parse (\cs => concat [parse (f a) cs' | (a,cs') <- parse p cs])
 
+
+-- many and some are derived automatically
 Alternative Parser where
     empty = Parse (\cs => [])
     p <|> q = Parse (\cs => case parse p cs of
@@ -29,6 +31,26 @@ char = Parse (\cs => case (unpack cs) of
                 []     => []
                 (c :: cs) =>  [(c, pack $ cs)])
 
+
+satisfy : (Char -> Bool) -> Parser Char
+satisfy pred = do
+                x <- char
+                if (pred x) then pure x else empty
+
+oneOf : String -> Parser Char
+oneOf s = satisfy (flip elem (unpack s))
+
+digit : Parser Char
+digit = satisfy isDigit
+
+upper : Parser Char
+upper = satisfy isUpper
+
+lower : Parser Char
+lower = satisfy isLower
+
+letter : Parser Char
+letter = satisfy isAlpha
 
 
 
