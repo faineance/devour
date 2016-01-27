@@ -55,11 +55,27 @@ lower = satisfy isLower
 letter : Parser Char
 letter = satisfy isAlpha
 
+-- Combinators
+
+optional : Parser a -> Parser (Maybe a)
+optional p = map Just p <|> pure Nothing
+
+mutual
+    many : Parser a -> Parser (List a)
+    many p = some p <|> pure []
+
+    some : Parser a -> Parser (List a)
+    some p = p >>= \v => many p >>= \vs => return (v :: vs)
+
+
+spaces : Parser ()
+spaces = many (satisfy isSpace) *> return ()
+
 string : String -> Parser String
 string s = map pack (traverse char (unpack s))
 
--- padded : Parser a -> Parser a
--- padded p = spaces *> p <* spaces
+padded : Parser a -> Parser a
+padded p = spaces *> p <* spaces
 
 surrounding : Char -> Char -> Parser a -> Parser a
 surrounding o c p = char o *> p <* char c
@@ -72,18 +88,3 @@ sbrackets = surrounding '[' ']'
 
 cbrackets : Parser a -> Parser a
 cbrackets = surrounding '{' '}'
-
-
--- Combinators
-
-optional : Parser a -> Parser (Maybe a)
-optional p = map Just p <|> pure Nothing
-
-
--- parse : Parser a -> String -> Maybe a
--- parse p str = case (p str)
-
-
-
-main : IO ()
-main = putStrLn "Hello world"
