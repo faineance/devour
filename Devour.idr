@@ -1,4 +1,5 @@
 module Devour
+import Data.String
 
 record Parser a where
     constructor Parse
@@ -37,6 +38,16 @@ satisfy pred = do
                 x <- item
                 if (pred x) then pure x else empty
 
+optional : Parser a -> Parser (Maybe a)
+optional p = map Just p <|> pure Nothing
+
+mutual
+    many : Parser a -> Parser (List a)
+    many p = some p <|> pure []
+
+    some : Parser a -> Parser (List a)
+    some p = p >>= \v => many p >>= \vs => return (v :: vs)
+
 oneOf : String -> Parser Char
 oneOf s = satisfy (flip elem (unpack s))
 
@@ -55,24 +66,15 @@ lower = satisfy isLower
 letter : Parser Char
 letter = satisfy isAlpha
 
--- Combinators
+string : String -> Parser String
+string s = map pack (traverse char (unpack s))
 
-optional : Parser a -> Parser (Maybe a)
-optional p = map Just p <|> pure Nothing
 
-mutual
-    many : Parser a -> Parser (List a)
-    many p = some p <|> pure []
-
-    some : Parser a -> Parser (List a)
-    some p = p >>= \v => many p >>= \vs => return (v :: vs)
-
+-- number : Parser Double
+-- number = pure parseDouble ((string "-" <|> pure "") ++ some digit)
 
 spaces : Parser ()
 spaces = many (satisfy isSpace) *> return ()
-
-string : String -> Parser String
-string s = map pack (traverse char (unpack s))
 
 padded : Parser a -> Parser a
 padded p = spaces *> p <* spaces
@@ -88,3 +90,15 @@ sbrackets = surrounding '[' ']'
 
 cbrackets : Parser a -> Parser a
 cbrackets = surrounding '{' '}'
+
+squotes : Parser a -> Parser a
+squotes = surrounding '\'' '\''
+
+dquotes : Parser a -> Parser a
+dquotes = surrounding '\"' '\"'
+
+token : Parser a -> Parser a
+token = padded
+
+ident : String -> Parser String
+ident s = token (string s)
