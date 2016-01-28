@@ -20,7 +20,6 @@ Monad Parser where
     p >>= f = Parse (\cs => concat [parse (f a) cs' | (a,cs') <- parse p cs])
 
 
--- many and some are derived automatically
 Alternative Parser where
     empty = Parse (\cs => [])
     p <|> q = Parse (\cs => case parse p cs of
